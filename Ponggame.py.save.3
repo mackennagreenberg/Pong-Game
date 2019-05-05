@@ -1,0 +1,101 @@
+import pygame
+pygame.font.init()
+import BSL
+import sys
+pygame.init()
+display_width = 1520
+display_height = 920
+gameDisplay = pygame.display.set_mode((display_width,display_height)) #use variables so we can reference
+pygame.display.set_caption("Pong by Mackenna Greenberg (feat. Alex)")
+
+
+black = (0,0,0)
+white = (255,255,255)
+red = (255,0,0)
+currentScreen = BSL.HomeScreen
+
+
+
+x = (display_width * 0.45)
+y = (display_height * 0.8)
+clock = pygame.time.Clock()
+
+
+currentComputerScore = 0
+currentPlayerScore = 0
+
+newPlayerScore = 0
+newComputerScore = 0
+
+font = pygame.font.SysFont('Comic Sans MS',25)
+computerScoreText = font.render("Opponent's Score: "+str(newComputerScore), True, black)
+playerScoreText = font.render("Your Score: "+str(newPlayerScore), True, black)
+
+while True:
+        for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                        pygame.quit(); sys.exit();
+	(xPosition,yPosition) = pygame.mouse.get_pos()
+	BSL.GameScreenPaddleLeft.y1 = yPosition
+	BSL.GameScreenPaddleLeft.y2 = yPosition + 200
+
+
+
+
+
+
+	BSL.GameScreenBall.collisionCheckPaddle(BSL.GameScreenPaddleLeft)
+	BSL.GameScreenBall.collisionCheckPaddle(BSL.GameScreenPaddleRight)
+	BSL.GameScreenBall.collisionCheckWall(display_width,display_height)
+	BSL.GameScreenBall.updateBallPosition()
+	
+	gameDisplay.fill(white)
+	if currentScreen == BSL.GameScreen:
+		if ((BSL.GameScreenBall.x1 == 0) and
+	    	    (BSL.GameScreenBall.y1 >= 0) and
+	    	    (BSL.GameScreenBall.y1 <= display_height)):
+			computerScoreText = font.render("Opponent's Score: "+str(newComputerScore), True, black)
+			currentComputerScore += 1
+			newComputerScore = currentComputerScore
+			print("Your opponent got a point!")
+			print(newPlayerScore,newComputerScore)
+
+			if newComputerScore == 8:
+				newComputerScore = 0
+				currentComputerScore = 0
+		gameDisplay.blit(computerScoreText,(1350,0))
+
+	if currentScreen == BSL.GameScreen:
+		if ((BSL.GameScreenBall.x1 == display_width) and
+	    	    (BSL.GameScreenBall.y1 >= 0) and
+	    	    (BSL.GameScreenBall.y1 <= display_height)):
+			playerScoreText = font.render("Your Score: "+str(newPlayerScore), True, black)
+			currentPlayerScore += 1
+			newPlayerScore = currentPlayerScore
+			print("You got a point!")
+			print(newPlayerScore,newComputerScore)
+
+
+		if newPlayerScore == 8:
+			newPlayerScore = 0
+			currentPlayerScore = 0
+		gameDisplay.blit(playerScoreText,(0,0))
+
+	currentScreen.displayImages(gameDisplay)
+
+	newScreen = currentScreen.checkClicked()
+	if newScreen: currentScreen = newScreen
+	
+	
+
+
+
+
+
+
+
+
+
+	currentScreen.unload()
+	pygame.display.update() #updates the screen
+        clock.tick(60) 

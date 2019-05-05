@@ -1,0 +1,227 @@
+import pygame
+
+
+class Button: #names the class
+        def __init__(self,path,x1,y1,x2,y2,whereItGoes): #initializes the class; defines the button with the characteristics
+                self.image = pygame.image.load(path) #sets the color I have defined to the self object (button)
+                self.x1 = x1 #sets a coordinate I have defined to the self object (button)
+                self.y1 = y1 #sets a coordinate I have defined to the self object (button)
+                self.x2 = x2#sets a coordinate I have defined to the self object (button)
+                self.y2 = y2
+                self.whereItGoes = whereItGoes #variable for what the object does and defines it to the self (button)
+                self.clicked = False
+        def checkClicked(self): #creates a method to tell the computer when the button is clicked
+                                                #three paremeters: self, mousButtonState and the coordinates of the cursor
+                pygame.event.get()
+                if pygame.mouse.get_pressed()[0] and pygame.mouse.get_pos()[0] and (self.x2>pygame.mouse.get_pos()[0]) and (pygame.mouse.get_pos()[0]>self.x1) and (self.y1<pygame.mouse.get_pos()[1]) and (pygame.mouse.get_pos()[1]<self.y2):
+                         # and if it is inside the button
+
+                        self.clicked = True #do what the button does
+			return self.whereItGoes
+                else:
+                        self.clicked = False
+			return None
+
+
+class Paddle:
+        def __init__(self,path,x1,y1,x2,y2,dy):
+                self.image = pygame.image.load(path)
+                self.x1 = x1
+                self.y1 = y1
+                self.x2 = x2
+                self.y2 = y2
+		self.dy = dy
+		self.active = False
+
+		self.horizontalPosition = False
+                self.verticalPosition = False
+                self.previousHorizontalPosition = False
+                self.previousVerticalPosition = False
+	
+
+	def updatePaddleSpeed(self):
+		self.y1 = self.y1 + self.dy
+		self.y2 = self.y2 + self.dy
+
+	def RightPaddlePosition(self,Ball):
+		self.y1 = Ball.y1
+		self.y2 = Ball.y2 + 200		
+
+class Screen:
+        def __init__(self,buttonList,labelList,uniqueObjects):
+                
+		self.buttonList = buttonList
+                self.labelList = labelList
+		self.uniqueObjects = uniqueObjects
+
+        def addButtons(self,buttonList):
+                self.buttonList = buttonList
+
+        def addLabels(self,labelList):
+                self.labelList = labelList
+
+	def addUniqueObjects(self,uniqueObjects):
+		self.uniqueObjects = uniqueObjects
+
+
+	def displayImages(self,gameWindow):
+	        for button in self.buttonList:
+               		gameWindow.blit(button.image, (button.x1,button.y1))
+          	for label in self.labelList:
+                	gameWindow.blit(label.image, (label.x1,label.y1))
+		for uniqueObject in self.uniqueObjects:
+			if uniqueObject.active == True:
+				gameWindow.blit(uniqueObject.image, (uniqueObject.x1,uniqueObject.y1))
+
+	def checkClicked(self):
+		newScreen = []
+		for button in self.buttonList:
+			if button.checkClicked():
+				return button.checkClicked()		
+	def unload(self):
+		for button in self.buttonList:
+			button.clicked = False
+
+
+
+
+class Label:		
+        def __init__(self,path,x1,y1,x2,y2):
+                self.image = pygame.image.load(path)
+                self.x1 = x1
+                self.y1 = y1
+                self.x2 = x2
+                self.y2 = y2
+		
+class Ball:
+	def __init__(self,path,x1,y1,x2,y2,dx,dy):
+		self.image = pygame.image.load(path)
+		self.x1 = x1
+		self.y1 = y1
+		self.x2 = x2
+		self.y2 = y2
+		self.dx = dx
+		self.dy = dy
+		self.active = False
+
+	def collisionCheckPaddle(self,gameObject):
+		gameObject.previousHorizontalPosition = gameObject.horizontalPosition
+		gameObject.previousVerticalPosition = gameObject.verticalPosition
+		
+		if (((self.x1 <= gameObject.x2) and (self.x1 >= gameObject.x1)) or
+		    ((self.x2 >= gameObject.x1) and (self.x2 <= gameObject.x2))):
+			gameObject.horizontalPosition = True
+		else:
+			gameObject.horizontalPosition = False
+
+		if (((self.y1 >= gameObject.y1) and (self.y1 <= gameObject.y2)) or
+		    ((self.y2 >= gameObject.y1) and (self.y2 <= gameObject.y2))):
+			gameObject.verticalPosition = True
+		else:
+			gameObject.verticalPosition = False
+		if (gameObject.horizontalPosition == True) and (gameObject.verticalPosition == True):
+			if (gameObject.verticalPosition != gameObject.previousVerticalPosition) and (gameObject.horizontalPosition != gameObject.previousHorizontalPosition):
+				self.dy = -1*self.dy
+				self.dx = -1*self.dx
+
+			else:
+			
+
+				if (gameObject.verticalPosition != gameObject.previousVerticalPosition):
+					self.dy = -1*self.dy
+				if (gameObject.horizontalPosition != gameObject.previousHorizontalPosition):
+					self.dx = -1*self.dx
+
+
+	
+
+
+
+
+
+
+			
+
+	def collisionCheckWall(self,display_width,display_height):
+		if (self.y2>=display_height):
+			self.dy = -1*self.dy
+			self.y2 = display_height
+			self.y1 = display_height - 40
+		
+
+		if (self.y1<=0):
+			self.dy = -1*self.dy
+			self.y1 = 0
+			self.y2 = 40
+
+	
+		if ((self.x1<=0) or 
+		    (self.x2>=display_width)):
+			self.x1=560
+                	self.x2=600
+                	self.y1=440
+                	self.y2=480
+
+	def updateBallPosition(self):
+		self.x1 = self.x1 + self.dx
+        	self.y1 = self.y1 + self.dy
+        	self.x2 = self.x2 + self.dx
+        	self.y2 = self.y2 + self.dy
+
+HomeScreenLabel = Label("PONGhomescreen.png",400,0,1080,200)
+DifficultyScreenLabel = Label("SelectDifficultyLabel.png",440,0,1080,200)
+HelpHelpScreenLabel = Label("HelpHelpScreenLabel.png",440,0,1080,200)
+InstructionsHelpScreenLabel = Label("HelpScreenLabel.png",160,400,1360,800)
+
+GameScreenPaddleLeft = Paddle("Paddle.png",40,360,120,560,20)
+BeginnerGameScreenPaddleRight = Paddle("Paddle.png",1400,360,1480,560,30)
+IntermediateGameScreenPaddleRight = Paddle("Paddle.png",1400,360,1480,560,35)
+AdvancedGameScreenPaddleRight = Paddle("Paddle.png",1400,360,1480,560,55)
+
+
+
+
+BeginnerGameScreenBall = Ball("Ball.png",560,440,600,480,20,30)
+IntermediateGameScreenBall = Ball("Ball.png",560,440,600,480,20,30)
+AdvancedGameScreenBall = Ball("Ball.png",560,440,600,480,20,30)
+
+HomeScreen = Screen(None,[HomeScreenLabel],[])
+DifficultyScreen = Screen(None,[DifficultyScreenLabel],[])
+HelpScreen = Screen(None,[HelpHelpScreenLabel,InstructionsHelpScreenLabel],[])
+GameScreen = Screen(None,[],[GameScreenPaddleLeft,BeginnerGameScreenPaddleRight,IntermediateGameScreenPaddleRight,AdvancedGameScreenPaddleRight,BeginnerGameScreenBall,IntermediateGameScreenBall,AdvancedGameScreenBall])
+PauseScreen = Screen(None,[],[])
+
+PauseGameScreenButton = Button("PauseGameScreenButton.png",680,0,800,120,PauseScreen)
+
+DifficultyHomeScreenButton = Button("DifficultyButton.png",240,440,640,640,DifficultyScreen)
+HelpHomeScreenButton = Button("HelpButton.png",880,440,1280,640,HelpScreen)
+
+
+BeginnerDifficultyScreenButton = Button("BeginnerButton.png",80,400,480,600,GameScreen)
+IntermediateDifficultyScreenButton = Button("IntermediateButton.png",560,400,960,600,GameScreen)
+AdvancedDifficultyScreenButton = Button("AdvancedButton.png",1040,400,1440,600,GameScreen)
+BackDifficultyScreenButton = Button("BackDifficultyScreenButton.png",80,40,360,160,HomeScreen)
+
+
+
+
+
+BackHelpScreenButton = Button("BackHelpScreenButton.png",80,40,360,160,HomeScreen)
+DifficultyHelpScreenButton = Button("DifficultyHelpScreenButton.png",1160,40,1440,160,DifficultyScreen)
+
+
+
+GameScreenHomeButton = Button("gamescreenplaceholderhomebutton.png",80,40,360,160,None)
+
+
+PlayButtonPauseScreen = Button("PlayButtonPauseScreen.png",600,360,920,560,None)
+
+HomeScreen.addButtons([DifficultyHomeScreenButton,HelpHomeScreenButton])
+
+DifficultyScreen.addButtons([BeginnerDifficultyScreenButton,IntermediateDifficultyScreenButton,AdvancedDifficultyScreenButton,BackDifficultyScreenButton])
+
+HelpScreen.addButtons([BackHelpScreenButton,DifficultyHelpScreenButton])
+
+GameScreen.addButtons([PauseGameScreenButton])
+
+PauseScreen.addButtons([PlayButtonPauseScreen])

@@ -1,0 +1,7 @@
+def getSlice(inputString, sliceSize): #define function called getSlice with two inputs; inputString and sliceSize
+	slice = "" #set slice equal to an empty string
+	for i in range(0, sliceSize): #for character in this range, do everything in the for loop. The range function will include everything up to the range but not incuding
+		slice += inputString[i] #set slice equal to slice + inputString[i]
+	return slice #returns the value slice..DOES NOT PRINT IT
+
+

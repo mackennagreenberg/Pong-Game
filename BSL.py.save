@@ -1,0 +1,137 @@
+import pygame
+class Button: #names the class
+        def __init__(self,path,x1,y1,x2,y2,whereItGoes): #initializes the class; defines the button with the characteristics
+                self.image = pygame.image.load(path) #sets the color I have defined to the self object (button)
+                self.x1 = x1 #sets a coordinate I have defined to the self object (button)
+                self.y1 = y1 #sets a coordinate I have defined to the self object (button)
+                self.x2 = x2#sets a coordinate I have defined to the self object (button)
+                self.y2 = y2
+                self.whereItGoes = whereItGoes #variable for what the object does and defines it to the self (button)
+                self.clicked = False
+        def checkClicked(self): #creates a method to tell the computer when the button is clicked
+                                                #three paremeters: self, mousButtonState and the coordinates of the cursor
+                pygame.event.get()
+                if pygame.mouse.get_pressed()[0] and pygame.mouse.get_pos()[0] and (self.x2>pygame.mouse.get_pos()[0]) and (pygame.mouse.get_pos()[0]>self.x1) and (self.y1<pygame.mouse.get_pos()[1]) and (pygame.mouse.get_pos()[1]<self.y2):
+                         # and if it is inside the button
+
+                        self.clicked = True #do what the button does
+			return self.whereItGoes
+                else:
+                        self.clicked = False
+			return None
+
+
+class Paddle:
+        def __init__(self,path,x1,y1,x2,y2):
+                self.image = pygame.image.load(path)
+                self.x1 = x1
+                self.y1 = y1
+                self.x2 = x2
+                self.y2 = y2
+class Screen:
+        def __init__(self,buttonList,labelList,uniqueObjects):
+                
+		self.buttonList = buttonList
+                self.labelList = labelList
+		self.uniqueObjects = uniqueObjects
+
+        def addButtons(self,buttonList):
+                self.buttonList = buttonList
+
+        def addLabels(self,labelList):
+                self.labelList = labelList
+
+	def addUniqueObjects(self,uniqueObjects):
+		self.uniqueObjects = uniqueObjects
+
+
+	def displayImages(self,gameWindow):
+	        for button in self.buttonList:
+               		gameWindow.blit(button.image, (button.x1,button.y1))
+          	for label in self.labelList:
+                	gameWindow.blit(label.image, (label.x1,label.y1))
+		for uniqueObject in self.uniqueObjects:
+			gameWindow.blit(uniqueObject.image, (uniqueObject.x1,uniqueObject.y1))
+
+	def checkClicked(self):
+		newScreen = []
+		for button in self.buttonList:
+			if button.checkClicked():
+				return button.checkClicked()		
+	def unload(self):
+		for button in self.buttonList:
+			button.clicked = False
+
+class Label:
+        def __init__(self,path,x1,y1,x2,y2):
+                self.image = pygame.image.load(path)
+                self.x1 = x1
+                self.y1 = y1
+                self.x2 = x2
+                self.y2 = y2
+		
+class Ball:
+	def __init__(self,path,x1,y1,x2,y2):
+		self.image = pygame.image.load(path)
+		self.x1 = x1
+		self.y1 = y1
+		self.x2 = x2
+		self.y2 = y2
+	
+	def changeBallCoordinates(self,x1,y1,x2,y2):
+		self.x1 = x1
+		self.y1 = y1
+		self.x2 = x2
+		self.y2 = y2
+
+
+
+
+HomeScreenLabel = Label("PONG homescreen.png",400,0,1080,200)
+DifficultyScreenLabel = Label("SelectDifficultyLabel.png",440,0,1080,200)
+HelpHelpScreenLabel = Label("HelpHelpScreenLabel.png",440,0,1080,200)
+InstructionsHelpScreenLabel = Label("HelpScreenLabel.png",160,400,1360,800)
+
+GameScreenPaddleLeft = Paddle("Paddle.png",40,360,120,560)
+GameScreenPaddleRight = Paddle("Paddle.png",1400,360,1480,560)
+GameScreenBall = Ball("Ball.png",560,440,600,480)
+
+HomeScreen = Screen(None,[HomeScreenLabel],[])
+DifficultyScreen = Screen(None,[DifficultyScreenLabel],[])
+HelpScreen = Screen(None,[HelpHelpScreenLabel,InstructionsHelpScreenLabel],[])
+GameScreen = Screen(None,[],[GameScreenPaddleLeft,GameScreenPaddleRight,GameScreenBall])
+PauseScreen = Screen(None,[],[])
+
+
+
+BeginGameHomeScreenButton = Button("BeginGameButton.png",560,400,960,600,GameScreen)
+DifficultyHomeScreenButton = Button("DifficultyButton.png",80,400,480,600,DifficultyScreen)
+HelpHomeScreenButton = Button("HelpButton.png",1040,400,1440,600,HelpScreen)
+
+
+BeginnerDifficultyScreenButton = Button("BeginnerButton.png",80,400,480,600,GameScreen)
+IntermediateDifficultyScreenButton = Button("IntermediateButton.png",560,400,960,600,GameScreen)
+AdvancedDifficultyScreenButton = Button("AdvancedButton.png",1040,400,1440,600,GameScreen)
+BackDifficultyScreenButton = Button("BackDifficultyScreenButton.png",80,40,360,160,HomeScreen)
+
+
+
+BackHelpScreenButton = Button("BackHelpScreenButton.png",80,40,360,160,HomeScreen)
+PlayHelpScreenButton = Button("PlayHelpScreenButton.png",1160,40,1440,160,GameScreen)
+
+
+
+GameScreenHomeButton = Button("gamescreenplaceholderhomebutton.png",80,40,360,160,None)
+
+
+PlayButtonPauseScreen = Button("PlayButtonPauseScreen.png",600,360,920,560,None)
+
+HomeScreen.addButtons([BeginGameHomeScreenButton,DifficultyHomeScreenButton,HelpHomeScreenButton])
+
+DifficultyScreen.addButtons([BeginnerDifficultyScreenButton,IntermediateDifficultyScreenButton,AdvancedDifficultyScreenButton,BackDifficultyScreenButton])
+
+HelpScreen.addButtons([BackHelpScreenButton,PlayHelpScreenButton])
+
+GameScreen.addButtons([])
+
+PauseScreen.addButtons([PlayButtonPauseScreen])
