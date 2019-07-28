@@ -7,7 +7,9 @@ display_width = 1520
 display_height = 920
 white = (255,255,255)
 red = (255,0,0)
+black = (0,0,0)
 clock = pygame.time.Clock()
+
 
 gameDisplay = pygame.display.set_mode((display_width,display_height)) #use variables so we can reference
 pygame.display.set_caption("Pong by Mackenna Greenberg (feat. Alex)")
@@ -15,23 +17,30 @@ pygame.display.set_caption("Pong by Mackenna Greenberg (feat. Alex)")
 buttons = []
 labels = []
 gameObjects = []
-computerScore = 0
-playerScore = 0
+score = [0,0]
 
 defaultState = {
     "buttons": [],
     "labels": [],
     "gameObjects": [],
-    "computerScore": 0,
-    "playerScore": 0
+    "score": [0,0],
+    "display_width": display_width,
+    "display_height": display_height,
+    "difficulty": 0,
+    "win": None
+
     }
+
 homeState = {
     "buttons": [BSL.helpHomeScreenButton,
                 BSL.difficultyHomeScreenButton],
     "labels": [BSL.homeScreenLabel],
     "gameObjects": [],
-    "computerScore": 0,
-    "playerScore": 0
+    "score": [0,0],
+    "display_width": display_width,
+    "display_height": display_height,
+    "difficulty": 0,
+    "win": None
     }
 
 helpState = {
@@ -40,8 +49,11 @@ helpState = {
     "labels": [BSL.helpHelpScreenLabel,
                 BSL.instructionsHelpScreenLabel],
     "gameObjects": [],
-    "computerScore": 0,
-    "playerScore": 0
+    "score": [0,0],
+    "display_width": display_width,
+    "display_height": display_height,
+    "difficulty": 0,
+    "win": None
     }
 
 difficultyState = {
@@ -51,8 +63,11 @@ difficultyState = {
                 BSL.backDifficultyScreenButton],
     "labels": [BSL.difficultyScreenLabel],
     "gameObjects": [],
-    "computerScore": 0,
-    "playerScore": 0
+    "score": [0,0],
+    "display_width": display_width,
+    "display_height": display_height,
+    "difficulty": 0,
+    "win": None
     }
 
 playState = {
@@ -62,11 +77,27 @@ playState = {
     "gameObjects": [BSL.gameScreenPaddleLeft,
                     BSL.beginnerGameScreenPaddleRight,
                     BSL.beginnerGameScreenBall],
-    "computerScore": 0,
-    "playerScore": 0,
+    "score": [0,0],
     "mouseX": 0,
-    "mouseY": 0
+    "mouseY": 0,
+    "display_width": display_width,
+    "display_height": display_height,
+    "difficulty": 0,
+    "AIdifficulty": 0,
+    "win": None,
 }
+
+beginnerState = playState.copy()
+beginnerState["difficulty"] = 13
+beginnerState["AIdifficulty"] = beginnerState["difficulty"] - 3
+
+intermediateState = playState.copy()
+intermediateState["difficulty"] = 16
+intermediateState["AIdifficulty"] = intermediateState["difficulty"] - 2
+
+advancedState = playState.copy()
+advancedState["difficulty"] = 25
+advancedState["AIdifficulty"] = advancedState["difficulty"] - 2
 
 pauseState = {
     "buttons": [BSL.pauseScreenHomeButton,
@@ -75,9 +106,27 @@ pauseState = {
                 BSL.playButtonPauseScreen],
     "labels": [],
     "gameObjects": [],
-    "computerScore": 0,
-    "playerScore": 0
+    "score": [0,0],
+    "display_width": display_width,
+    "display_height": display_height,
+    "difficulty": 0,
+    "win": None
 }
+
+winState = {
+    "buttons": [BSL.playAgainButton, BSL.changeDifficultyWinButton, BSL.homeWinButton],
+    "labels": [BSL.winnerLabel],
+    "gameObjects": [],
+    "score": [0,0],
+    "display_width": display_width,
+    "display_height": display_height,
+    "difficulty": 0,
+    "win": None
+}
+
+loseState = winState.copy()
+loseState["labels"] = [BSL.loserLabel]
+
 
 BSL.helpHomeScreenButton.nextState = helpState
 BSL.difficultyHomeScreenButton.nextState = difficultyState
@@ -85,9 +134,9 @@ BSL.difficultyHomeScreenButton.nextState = difficultyState
 BSL.backHelpScreenButton.nextState = homeState
 BSL.difficultyHelpScreenButton.nextState = difficultyState
 
-BSL.beginnerDifficultyScreenButton.nextState = playState
-BSL.intermediateDifficultyScreenButton.nextState = playState
-BSL.advancedDifficultyScreenButton.nextState = playState
+BSL.beginnerDifficultyScreenButton.nextState = beginnerState
+BSL.intermediateDifficultyScreenButton.nextState = intermediateState
+BSL.advancedDifficultyScreenButton.nextState = advancedState
 BSL.backDifficultyScreenButton.nextState = homeState
 
 BSL.gameScreenButton.nextState = pauseState
@@ -98,17 +147,22 @@ BSL.pauseScreenHelpButton.nextState = helpState
 BSL.pauseScreenDifficultyButton.nextState = difficultyState
 BSL.playButtonPauseScreen.nextState = playState
 
+BSL.changeDifficultyWinButton.nextState = difficultyState
+BSL.homeWinButton.nextState = homeState
+BSL.playAgainButton.nextState = homeState
 
 
+font = pygame.font.SysFont('Comic Sans MS',25)
 
 def resetState(gameState):
     gameState = {
         "buttons": [],
         "labels": [],
         "gameObjects": [],
-        "computerScore": 0,
-        "playerScore": 0
+        "score": [0,0]
         }
+
+gameState = homeState
 
 def displayImages(gameWindow, gameState):
     for button in gameState["buttons"]:
@@ -117,8 +171,18 @@ def displayImages(gameWindow, gameState):
         gameWindow.blit(label.image, (label.x1,label.y1))
     for gameObject in gameState["gameObjects"]:
         gameWindow.blit(gameObject.image, (gameObject.x1,gameObject.y1))
+#    for score in gameState["score"]:
+    #    print(gameState["score"])
+#    gameWindow.blit(computerScoreText,(1278,0))
+    #    gameWindow.blit(playerScoreText, (5,0))
 
-gameState = homeState
+def displayText(gameWindow, gameState):
+    computerScoreText = font.render("Opponent's Score: "+str(gameState["score"][1]), True, black)
+    playerScoreText = font.render("Your Score: "+str(gameState["score"][0]), True, black)
+    print(gameState["score"])
+    gameWindow.blit(computerScoreText,(1278,0))
+    gameWindow.blit(playerScoreText, (5,0))
+
 
 while True:
     for event in pygame.event.get():
@@ -131,12 +195,41 @@ while True:
         nextState = button.checkClicked()
         if bool(nextState):
             gameState = nextState
-            break #if there is a loop, stop running that loop
+            gameState["score"] = [0,0]
+            break
+    if gameState == beginnerState:
+        BSL.playButtonPauseScreen.nextState = beginnerState
+        BSL.playAgainButton.nextState = beginnerState
+        BSL.beginnerGameScreenPaddleRight.dy = beginnerState["difficulty"]
+    elif gameState == intermediateState:
+        BSL.playButtonPauseScreen.nextState = intermediateState
+        BSL.playAgainButton.nextState = intermediateState
+            #gameState["currentDifficulty"] == intermediate
+    elif gameState == advancedState:
+        BSL.playButtonPauseScreen.nextState = advancedState
+        BSL.playAgainButton.nextState = advancedState
+            #gameState["currentDifficulty"] == advanced
+
+
+
+
+
+     #if there is a loop, stop running that loop
     for gameObject in gameState["gameObjects"]:
         gameObject.update(gameState)
 
     gameDisplay.fill(white)
+
+    if gameState["win"] == True:
+        gameState["win"] = None
+        gameState = winState
+    elif gameState["win"] == False:
+        gameState["win"] = None
+        gameState = loseState
+    if (gameState == beginnerState) or (gameState == intermediateState) or (gameState == advancedState):
+        displayText(gameDisplay, gameState)
     displayImages(gameDisplay, gameState)
+
     pygame.display.update()
     clock.tick(60)
 

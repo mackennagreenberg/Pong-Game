@@ -147,6 +147,7 @@ while True:
 
 
 
+
         if BSL.IntermediateGameScreenBall.active == True:
             if currentScreen == BSL.GameScreen:
                 if ((BSL.IntermediateGameScreenBall.x1 <= 0) and

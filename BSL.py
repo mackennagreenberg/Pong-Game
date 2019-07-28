@@ -14,7 +14,7 @@ class Button: #names the class
                 pygame.event.get()
                 if pygame.mouse.get_pressed()[0] and pygame.mouse.get_pos()[0] and (self.x2>pygame.mouse.get_pos()[0]) and (pygame.mouse.get_pos()[0]>self.x1) and (self.y1<pygame.mouse.get_pos()[1]) and (pygame.mouse.get_pos()[1]<self.y2):
                          # and if it is inside the button
-
+                    pygame.time.wait(200)
                     return self.nextState
 
 class Paddle:
@@ -38,6 +38,7 @@ class AIPaddle(Paddle):
     def update(self,gameState):
         paddleMidline = (self.y1+self.y2)*0.5
         ball = gameState["gameObjects"][2]
+        self.dy = gameState["AIdifficulty"] 
         if ball.y2 < paddleMidline:
             self.y1 = self.y1 - self.dy
             self.y2 = self.y2 - self.dy
@@ -46,6 +47,16 @@ class AIPaddle(Paddle):
             self.y1 = self.y1 + self.dy
             self.y2 = self.y2 + self.dy
 
+        if ((beginnerGameScreenBall.x1 <= 0) and
+           (beginnerGameScreenBall.y1 >= 0) and
+           (beginnerGameScreenBall.y1 <= gameState["display_height"])):
+           gameState["score"][1] += 1
+        if gameState["score"][1] == 8:
+            gameState["score"][1] = 0
+            gameState["win"] = False
+
+
+
 
 class PlayerPaddle(Paddle):
     #def __init__(...) - again may want to implement playButtonPauseScreen
@@ -53,6 +64,15 @@ class PlayerPaddle(Paddle):
     def update(self,gameState):
         self.y1 = gameState["mouseY"]
         self.y2 = gameState["mouseY"] + self.height
+
+        if ((beginnerGameScreenBall.x2 >= gameState["display_width"]) and
+            (beginnerGameScreenBall.y1 >= 0) and
+            (beginnerGameScreenBall.y1 <= gameState["display_height"])):
+            gameState["score"][0] += 1
+            if gameState["score"][0] == 8:
+                gameState["win"] = True
+                gameState["score"][0] = 0
+
 
 class Label:
         def __init__(self,path,x1,y1,x2,y2):
@@ -74,54 +94,20 @@ class Ball:
         self.active = False
 
     def update(self,gameState):
-        self.y1 = self.y1 - 1
-        self.y2 = self.y2 - 1
+        display_height = gameState["display_height"]
+        display_width = gameState["display_width"]
 
-    def collisionCheckPaddle(self,gameObject):
-        effect = pygame.mixer.Sound('BOOP.wav')
-        gameObject.previousHorizontalPosition = gameObject.horizontalPosition
-        gameObject.previousVerticalPosition = gameObject.verticalPosition
-
-        if (((self.x1 <= gameObject.x2) and (self.x1 >= gameObject.x1)) or
-            ((self.x2 >= gameObject.x1) and (self.x2 <= gameObject.x2))):
-            gameObject.horizontalPosition = True
-        else:
-            gameObject.horizontalPosition = False
-
-        if (((self.y1 >= gameObject.y1) and (self.y1 <= gameObject.y2)) or
-            ((self.y2 >= gameObject.y1) and (self.y2 <= gameObject.y2))):
-            gameObject.verticalPosition = True
-        else:
-            gameObject.verticalPosition = False
-
-        if (gameObject.horizontalPosition == True) and (gameObject.verticalPosition == True):
-            if (gameObject.verticalPosition != gameObject.previousVerticalPosition) and (gameObject.horizontalPosition != gameObject.previousHorizontalPosition):
-                self.dy = -1*self.dy
-                self.dx = -1*self.dx
-                effect.play()
-
-            else:
-                if (gameObject.verticalPosition != gameObject.previousVerticalPosition):
-                    self.dy = -1*self.dy
-                    effect.play()
-
-            if (gameObject.horizontalPosition != gameObject.previousHorizontalPosition):
-                self.dx = -1*self.dx
-                effect.play()
-
-    def collisionCheckWall(self,display_width,display_height):
-        effect = pygame.mixer.Sound('BOOP.wav')
         if (self.y2>=display_height):
             self.dy = -1*self.dy
             self.y2 = display_height
             self.y1 = display_height - 40
-            effect.play()
+            #effect.play()
 
         if (self.y1<=0):
             self.dy = -1*self.dy
             self.y1 = 0
             self.y2 = 40
-            effect.play()
+            #effect.play()
 
         if ((self.x1<=0) or
             (self.x2>=display_width)):
@@ -130,22 +116,60 @@ class Ball:
             self.y1=440
             self.y2=480
 
-    def updateBallPosition(self):
         self.x1 = self.x1 + self.dx
         self.y1 = self.y1 + self.dy
         self.x2 = self.x2 + self.dx
         self.y2 = self.y2 + self.dy
 
+        if not ((abs(self.dx) == gameState["difficulty"]) or (abs(self.dy) == gameState["difficulty"])):
+            self.dx = gameState["difficulty"]
+            self.dy = gameState["difficulty"]
+
+    #effect = pygame.mixer.Sound('BOOP.wav')
+        for gameObject in gameState["gameObjects"][0:2]:
+            #if not type(gameObject) == type(BSL.Ball):
+            gameObject.previousHorizontalPosition = gameObject.horizontalPosition
+            gameObject.previousVerticalPosition = gameObject.verticalPosition
+
+            if (((self.x1 <= gameObject.x2) and (self.x1 >= gameObject.x1)) or
+                ((self.x2 >= gameObject.x1) and (self.x2 <= gameObject.x2))):
+                gameObject.horizontalPosition = True
+            else:
+                gameObject.horizontalPosition = False
+
+            if (((self.y1 >= gameObject.y1) and (self.y1 <= gameObject.y2)) or
+                ((self.y2 >= gameObject.y1) and (self.y2 <= gameObject.y2))):
+                gameObject.verticalPosition = True
+            else:
+                gameObject.verticalPosition = False
+
+            if (gameObject.horizontalPosition == True) and (gameObject.verticalPosition == True):
+                if (gameObject.verticalPosition != gameObject.previousVerticalPosition) and (gameObject.horizontalPosition != gameObject.previousHorizontalPosition):
+                    self.dy = -1*self.dy
+                    self.dx = -1*self.dx
+                    #effect.play()
+
+                else:
+                    if (gameObject.verticalPosition != gameObject.previousVerticalPosition):
+                        self.dy = -1*self.dy
+                        #effect.play()
+
+                if (gameObject.horizontalPosition != gameObject.previousHorizontalPosition):
+                    self.dx = -1*self.dx
+                #    effect.play()
+
+
 homeScreenLabel = Label("PONGhomescreen.png",400,0,1080,200)
 difficultyScreenLabel = Label("SelectDifficultyLabel.png",440,0,1080,200)
 helpHelpScreenLabel = Label("HelpHelpScreenLabel.png",440,0,1080,200)
 instructionsHelpScreenLabel = Label("HelpScreenLabel.png",160,400,1360,800)
-#youWinLabel = Label("YouWinLabel.png",280,0,1240,240)
+winnerLabel = Label("Winner!Label.png",320,80,1200,240)
+loserLabel = Label("loserLabel.png",320,80,1200,240)
 
 gameScreenPaddleLeft = PlayerPaddle("Paddle.png",40,360,120,560,20)
-beginnerGameScreenPaddleRight = AIPaddle("Paddle.png",1400,360,1480,560,30)
+beginnerGameScreenPaddleRight = AIPaddle("Paddle.png",1400,360,1480,560,10)
 
-beginnerGameScreenBall = Ball("Ball.png",560,440,600,480,-39,40)
+beginnerGameScreenBall = Ball("Ball.png",560,440,600,480,0,0)
 
 gameScreenButton = Button("PauseGameScreenButton.png",680,0,800,120)
 playAgainWinLoseButton = Button("SelectDifficultyAndPlayAgainButton.png",200,360,320,520)
@@ -164,3 +188,6 @@ pauseScreenHomeButton = Button("HomePauseScreenButton.png",80,40,360,160)
 pauseScreenHelpButton = Button("HelpPauseScreenButton.png",600,40,920,160)
 pauseScreenDifficultyButton = Button("DifficultyPauseScreenButton.png",1160,40,1440,160)
 playButtonPauseScreen = Button("PlayButton.png",520,280,800,640)
+playAgainButton = Button("playAgainWinLoseButton.png",80,400,480,600)
+changeDifficultyWinButton = Button("changeDifficultyWinLoseButton.png",560,400,960,600)
+homeWinButton = Button("homeWinLoseButton.png",1040,400,1440,600)
